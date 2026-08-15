@@ -13,7 +13,7 @@ describe("type inference", () => {
 
     type Args = inferCommandType<typeof command>;
 
-    expectTypeOf<Args>().toMatchTypeOf<{
+    expectTypeOf<Args>().toMatchObjectType<{
       env: "dev" | "prod";
       port: number;
       dryRun: boolean;
@@ -26,7 +26,7 @@ describe("type inference", () => {
 
     type Args = inferCommandType<typeof command>;
 
-    expectTypeOf<Args>().toMatchTypeOf<{
+    expectTypeOf<Args>().toMatchObjectType<{
       verbose: boolean;
       v: boolean;
     }>();
@@ -37,7 +37,7 @@ describe("type inference", () => {
 
     type Args = inferCommandType<typeof command>;
 
-    expectTypeOf<Args>().toMatchTypeOf<{
+    expectTypeOf<Args>().toMatchObjectType<{
       host: string | undefined;
     }>();
   });
@@ -50,7 +50,7 @@ describe("type inference", () => {
 
     type Args = inferCommandType<typeof command>;
 
-    expectTypeOf<Args>().toMatchTypeOf<{
+    expectTypeOf<Args>().toMatchObjectType<{
       source: string;
       target?: string;
       files: string[];
@@ -61,16 +61,16 @@ describe("type inference", () => {
     new Command("publish")
       .option("--tag <string>")
       .prefetch(async (args) => {
-        expectTypeOf(args).toMatchTypeOf<{ tag: string }>();
+        expectTypeOf(args).toHaveProperty("tag").toBeString();
         return { releaseId: "rel-1" };
       })
       .validate((args, result) => {
-        expectTypeOf(args).toMatchTypeOf<{ tag: string }>();
-        expectTypeOf(result).toMatchTypeOf<{ releaseId: string }>();
+        expectTypeOf(args).toHaveProperty("tag").toBeString();
+        expectTypeOf(result).toHaveProperty("releaseId").toBeString();
       })
       .action(async (args, result) => {
-        expectTypeOf(args).toMatchTypeOf<{ tag: string }>();
-        expectTypeOf(result).toMatchTypeOf<{ releaseId: string }>();
+        expectTypeOf(args).toHaveProperty("tag").toBeString();
+        expectTypeOf(result).toHaveProperty("releaseId").toBeString();
       });
   });
 });
