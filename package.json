@@ -1,0 +1,47 @@
+{
+  "name": "yargs-extended",
+  "version": "1.0.0",
+  "packageManager": "yarn@4.18.0",
+  "workspaces": [
+    "./playground"
+  ],
+  "type": "module",
+  "description": "Typed helpers for building yargs-based CLI programs.",
+  "main": "./build/main.js",
+  "types": "./build/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/main.d.ts",
+      "import": "./build/main.js"
+    }
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "biome check .",
+    "clean": "rm -rf build",
+    "fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "yargs": "^18.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.8",
+    "@types/node": "^26.2.0",
+    "@types/yargs": "^17.0.35",
+    "type-fest": "^5.8.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

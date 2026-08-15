@@ -1,0 +1,16 @@
+{
+  "name": "@yargs-extended/playground",
+  "version": "0.0.0-playground",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build && node build/main.js"
+  },
+  "dependencies": {
+    "yargs-extended": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
+  }
+}

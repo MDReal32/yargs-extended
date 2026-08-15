@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "noEmit": true,
+    "paths": {
+      "yargs-extended": ["../src/main.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
