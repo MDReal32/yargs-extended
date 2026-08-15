@@ -242,27 +242,31 @@ export class Program {
         describe: s.description,
         choices: s.type === "enum" ? s.choices : undefined,
         alias: aliasList.length ? aliasList : undefined,
-        array: s.array ? true : undefined,
-        default: s.defaultValue
+        array: s.array ? true : undefined
       };
+      if (hasDefault) optCfg.default = s.defaultValue;
 
       // Coerce & validate
       if (s.type === "number") {
-        optCfg.coerce = (v: unknown) =>
-          !s.isRequired
+        optCfg.coerce = (v: unknown) => {
+          if (typeof v === "undefined") return v;
+          return !s.isRequired
             ? v
             : s.array
               ? splitMaybe(v).map((item) => toNumber(item, key))
               : toNumber(v, key);
+        };
       } else if (s.type === "string") {
-        optCfg.coerce = (v: unknown) =>
-          !s.isRequired
+        optCfg.coerce = (v: unknown) => {
+          if (typeof v === "undefined") return v;
+          return !s.isRequired
             ? v
             : s.array
               ? splitMaybe(v).map((item) => (typeof item === "string" ? item.trim() : String(item)))
               : typeof v === "string"
                 ? v.trim()
                 : String(v);
+        };
       }
       // boolean: yargs handles true/false and --no- flags
 

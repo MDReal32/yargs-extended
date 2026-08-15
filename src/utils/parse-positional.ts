@@ -73,7 +73,9 @@ export const parsePositional = (raw: string): ParsedPositional => {
         `Invalid positional type "${typeExpr}" in "${raw}". Variadic positional types must use "${typeExpr}[]" syntax.`
       );
 
-    switch (typeExpr) {
+    const baseTypeExpr = array ? typeExpr.slice(0, -2).trim() : typeExpr;
+
+    switch (baseTypeExpr) {
       case "string":
       case "path":
         type = "string";

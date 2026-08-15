@@ -31,6 +31,14 @@ describe("parsePositional", () => {
     expect(p.type).toBe("number");
   });
 
+  it("should parse variadic typed arguments", () => {
+    const p = parsePositional("...files: string[]");
+
+    expect(p.name).toBe("files");
+    expect(p.type).toBe("string");
+    expect(p.array).toBe(true);
+  });
+
   it("should parse optional typed arguments", () => {
     const p = parsePositional("[path: string]");
     expect(p.name).toBe("path");
@@ -62,5 +70,13 @@ describe("parsePositional", () => {
 
   it("should throw on unknown type", () => {
     expect(() => parsePositional("<name: unknown>")).toThrow();
+  });
+
+  it("should throw when array type syntax is used without variadic name syntax", () => {
+    expect(() => parsePositional("<files: string[]>")).toThrow();
+  });
+
+  it("should throw when variadic name syntax lacks array type syntax", () => {
+    expect(() => parsePositional("...files: string")).toThrow();
   });
 });

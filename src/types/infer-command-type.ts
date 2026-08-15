@@ -15,5 +15,5 @@ import type { Command } from "../core";
  * type Options = inferCommandType<typeof cmd>; // { bar: string }
  * ```
  */
-export type inferCommandType<TCommand extends Command<object>> =
+export type inferCommandType<TCommand> =
   TCommand extends Command<infer TOptions> ? TOptions : never;

@@ -36,9 +36,9 @@ describe("Program", () => {
 
   it("should register global options", () => {
     const program = Program.createProgram();
-    program.option("--global <string>", { description: "Global option" });
-    // access private options via checking behavior or if public method existed
-    // verify it doesn't throw
+    const returned = program.option("--global <string>", { description: "Global option" });
+
+    expect(returned).toBe(program);
   });
 
   it("should throw on global option conflict", () => {
@@ -55,23 +55,10 @@ describe("Program", () => {
     expect(() => program.option("--bar, -f")).toThrow();
   });
 
-  it("should parse arguments", async () => {
-    const program = Program.createProgram();
-    program.option("--foo <string>");
+  it("should reject missing commands", async () => {
+    const program = Program.createProgram().overrideExit();
 
-    // limited ability to test parsing without mocking process.argv or yargs behavior fully,
-    // but we can ensure parse() is callable.
-    // In a real integration test we would exec the CLI.
-    // Here we can try mocking argv if Program allowed injection, but it uses private yargs(hideBin(process.argv)).
-    // However, `_argv` is private.
-    // We can at least call parseAsync() and catch strict mode errors if no command provided.
-
-    try {
-      await program.parseAsync();
-    } catch (e) {
-      // Expected since no command provided and demandCommand(1) is set
-      expect(e).toBeDefined();
-    }
+    await expect(program.parseAsync([])).rejects.toThrow("You must provide a command");
   });
 
   it("should execute a command end-to-end", async () => {
@@ -109,9 +96,6 @@ describe("Program", () => {
   it("should handle command execution errors gracefully", async () => {
     const program = Program.createProgram().overrideExit();
 
-    // We can't easily spy on console in this env without a library, but we can verify it doesn't crash the test suite
-    // yargs .fail() might handle it if we configured it, but we have a try/catch in the handler wrapper.
-
     program.command("fail").action(async () => {
       throw new Error("Boom");
     });
@@ -122,10 +106,11 @@ describe("Program", () => {
 
   it("should validate number options", async () => {
     const program = Program.createProgram().overrideExit();
-    program.option("--port <number>");
+    program.option("--port <number>", { required: true });
 
-    // Should throw validation error for non-number
-    await expect(program.parseAsync(["--port", "abc"])).rejects.toThrow();
+    program.command("serve").action(async () => {});
+
+    await expect(program.parseAsync(["serve", "--port", "abc"])).rejects.toThrow();
   });
 
   it("should parse array options", async () => {
@@ -159,12 +144,140 @@ describe("Program", () => {
   it("should enforce required options", async () => {
     const program = Program.createProgram().overrideExit();
     program.option("--required <string>", { required: true });
+    program.command("run").action(async () => {});
 
-    await expect(program.parseAsync(["--version"])).resolves.not.toThrow(); // global flags might bypass?
-    // actually, if we run a command that doesn't use it?
-    // global options are applied to all commands usually if program.option is used.
+    await expect(program.parseAsync(["--version"])).resolves.toMatchObject({ version: true });
+    await expect(program.parseAsync(["run"])).rejects.toThrow();
+  });
 
-    // checks strict option demand
-    await expect(program.parseAsync([])).rejects.toThrow();
+  it("should execute command aliases", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let executed = false;
+    program
+      .command("run")
+      .addAlias("r")
+      .action(async () => {
+        executed = true;
+      });
+
+    await program.parseAsync(["r"]);
+    expect(executed).toBe(true);
+  });
+
+  it("should parse command option aliases and camel-case long names", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("deploy")
+      .option("--dry-run, -d")
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["deploy", "-d"]);
+
+    expect(args).toMatchObject({
+      d: true,
+      dryRun: true
+    });
+  });
+
+  it("should apply default values", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("deploy")
+      .option("--target <string>", { default: "local" })
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["deploy"]);
+
+    expect(args).toMatchObject({ target: "local" });
+  });
+
+  it("should validate enum choices", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("deploy")
+      .option("--env <dev|prod>", { required: true })
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["deploy", "--env", "prod"]);
+    expect(args).toMatchObject({ env: "prod" });
+
+    await expect(program.parseAsync(["deploy", "--env", "stage"])).rejects.toThrow();
+  });
+
+  it("should parse required and optional positional arguments", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("copy")
+      .positional("<source>")
+      .positional("[target]")
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["copy", "input.txt"]);
+    expect(args).toMatchObject({ source: "input.txt" });
+    expect(args).not.toHaveProperty("target");
+
+    await program.parseAsync(["copy", "input.txt", "output.txt"]);
+    expect(args).toMatchObject({ source: "input.txt", target: "output.txt" });
+  });
+
+  it("should execute nested subcommands", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("workspace")
+      .command("add")
+      .positional("<name>")
+      .option("--private")
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["workspace", "add", "core", "--private"]);
+
+    expect(args).toMatchObject({
+      name: "core",
+      private: true
+    });
+  });
+
+  it("should run prefetch, validate, and action in order", async () => {
+    const program = Program.createProgram().overrideExit();
+    const calls: string[] = [];
+
+    program
+      .command("publish")
+      .option("--tag <string>", { required: true })
+      .prefetch(async (args) => {
+        calls.push(`prefetch:${args.tag}`);
+        return { releaseId: "rel-1" };
+      })
+      .validate((args, result) => {
+        calls.push(`validate:${args.tag}:${result.releaseId}`);
+      })
+      .action(async (args, result) => {
+        calls.push(`action:${args.tag}:${result.releaseId}`);
+      });
+
+    await program.parseAsync(["publish", "--tag", "latest"]);
+
+    expect(calls).toEqual(["prefetch:latest", "validate:latest:rel-1", "action:latest:rel-1"]);
   });
 });

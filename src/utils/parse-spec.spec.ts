@@ -52,4 +52,33 @@ describe("parseSpec", () => {
     expect(spec.type).toBe("string");
     expect(spec.array).toBe(true);
   });
+
+  it("should parse enum choices", () => {
+    const spec = parseSpec("--env <dev|prod>");
+
+    expect(spec.type).toBe("enum");
+    expect(spec.choices).toEqual(["dev", "prod"]);
+  });
+
+  it("should parse multiple long aliases", () => {
+    const spec = parseSpec("--dry-run, --preview, -d");
+
+    expect(spec.longs).toEqual(["dry-run", "preview"]);
+    expect(spec.shorts).toEqual(["d"]);
+  });
+
+  it("should mark options required from config, not token wrapper", () => {
+    expect(parseSpec("--name <string>").isRequired).toBe(false);
+    expect(parseSpec("--name <string>", { required: true }).isRequired).toBe(true);
+  });
+
+  it("should reject missing long options", () => {
+    expect(() => parseSpec("-f")).toThrow("missing --long");
+  });
+
+  it("should reject aliases with conflicting value tokens", () => {
+    expect(() => parseSpec("--count <number>, --name <string>")).toThrow(
+      "Conflicting value tokens"
+    );
+  });
 });
