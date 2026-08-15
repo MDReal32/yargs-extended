@@ -3,7 +3,7 @@
  * type: author
  * author: MDReal
  */
-import type { Trim } from "type-fest";
+import type { Trim } from "./trim";
 
 export type Wrapper<S extends string> = S extends `<${infer R}>`
   ? { wrappedRequired: true; rest: Trim<R> }

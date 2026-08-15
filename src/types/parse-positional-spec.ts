@@ -3,12 +3,11 @@
  * type: author
  * author: MDReal
  */
-import type { Trim } from "type-fest";
-
 import type { NameOptional } from "./name-optional";
 import type { PositionKind } from "./position-kind";
 import type { RequiredFrom } from "./required-from";
 import type { SplitNameType } from "./split-name-type";
+import type { Trim } from "./trim";
 import type { TypeFromTail } from "./type-from-tail";
 import type { Variadic } from "./variadic";
 import type { Wrapper } from "./wrapper";

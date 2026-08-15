@@ -3,7 +3,7 @@
  * type: author
  * author: MDReal
  */
-import type { Trim } from "type-fest";
+import type { Trim } from "./trim";
 
 export type Variadic<S extends string> = S extends `...${infer R}`
   ? { array: true; rest: Trim<R> }

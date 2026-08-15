@@ -4,6 +4,8 @@
  * author: MDReal
  */
 
+import type { CapitalizeAscii } from "./capitalize-ascii";
+
 export type KebabToCamel<S extends string> = S extends `${infer H}-${infer T}`
-  ? `${H}${Capitalize<KebabToCamel<T>>}`
+  ? `${H}${CapitalizeAscii<KebabToCamel<T>>}`
   : S;

@@ -3,7 +3,6 @@
  * type: author
  * author: MDReal
  */
-import type { Merge, Promisable } from "type-fest";
 import type { ArgumentsCamelCase } from "yargs";
 
 import type { CommandDef } from "../types/command-def";
@@ -12,6 +11,7 @@ import type { OptRecordFromPositional } from "../types/opt-record-from-positiona
 import type { OptRecordFromSpec } from "../types/opt-record-from-spec";
 import type { ParsedPositional } from "../types/parsed-positional";
 import type { ParsedSpec } from "../types/parsed-spec";
+import type { Promisable } from "../types/promiseable";
 import { parsePositional } from "../utils/parse-positional";
 import { parseSpec } from "../utils/parse-spec";
 
@@ -88,7 +88,7 @@ export class Command<TAccum extends object = object, TPrefetchResult = void>
   option<const TSpec extends `--${string}`>(
     spec: TSpec,
     config?: ConfigOptions<TSpec>
-  ): Command<Merge<TAccum, OptRecordFromSpec<TSpec>>>;
+  ): Command<TAccum & OptRecordFromSpec<TSpec>>;
 
   /**
    * Registers an option for this command.
@@ -128,7 +128,7 @@ export class Command<TAccum extends object = object, TPrefetchResult = void>
     }
     this.options.push(parsed);
 
-    return this as unknown as Command<Merge<TAccum, OptRecordFromSpec<TSpec>>>;
+    return this as unknown as Command<TAccum & OptRecordFromSpec<TSpec>>;
   }
 
   /**
@@ -140,12 +140,12 @@ export class Command<TAccum extends object = object, TPrefetchResult = void>
    */
   positional<TPositional extends string>(
     positional: TPositional,
-    config?: Pick<ConfigOptions<TPositional>, "description">
+    config?: { description?: string }
   ) {
     const positionalArg = parsePositional(positional);
     positionalArg.description = config?.description;
     this.positionalArgs.push(positionalArg);
-    return this as unknown as Command<Merge<TAccum, OptRecordFromPositional<TPositional>>>;
+    return this as unknown as Command<TAccum & OptRecordFromPositional<TPositional>>;
   }
 
   /**
