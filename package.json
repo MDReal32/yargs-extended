@@ -7,6 +7,14 @@
   ],
   "type": "module",
   "description": "Typed helpers for building yargs-based CLI programs.",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/MDReal32/yargs-extended.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MDReal32/yargs-extended/issues"
+  },
+  "homepage": "https://github.com/MDReal32/yargs-extended#readme",
   "main": "./build/main.js",
   "types": "./build/main.d.ts",
   "exports": {
