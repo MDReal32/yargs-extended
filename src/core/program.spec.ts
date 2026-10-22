@@ -237,6 +237,44 @@ describe("Program", () => {
     expect(args).toMatchObject({ source: "input.txt", target: "output.txt" });
   });
 
+  it("should collect a variadic positional into an array", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("serve")
+      .positional("...[servers: string[]]")
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["serve"]);
+    expect(args?.servers ?? []).toEqual([]);
+
+    await program.parseAsync(["serve", "github"]);
+    expect(args).toMatchObject({ servers: ["github"] });
+
+    await program.parseAsync(["serve", "github", "jira"]);
+    expect(args).toMatchObject({ servers: ["github", "jira"] });
+  });
+
+  it("should require at least one value for a required variadic positional", async () => {
+    const program = Program.createProgram().overrideExit();
+
+    let args: Record<string, unknown> | undefined;
+    program
+      .command("add")
+      .positional("...<files: string[]>")
+      .action(async (parsed) => {
+        args = parsed;
+      });
+
+    await program.parseAsync(["add", "a.txt", "b.txt"]);
+    expect(args).toMatchObject({ files: ["a.txt", "b.txt"] });
+
+    await expect(program.parseAsync(["add"])).rejects.toThrow();
+  });
+
   it("should execute nested subcommands", async () => {
     const program = Program.createProgram().overrideExit();
 

@@ -176,9 +176,10 @@ export class Program {
     // Register subcommands
     for (const command of commands) {
       const handler = command.handler ?? (() => {});
-      const positionalNames = command.positionalArgs.map((p) =>
-        p.isRequired ? `<${p.name}>` : `[${p.name}]`
-      );
+      const positionalNames = command.positionalArgs.map((p) => {
+        const name = p.array ? `${p.name}..` : p.name;
+        return p.isRequired ? `<${name}>` : `[${name}]`;
+      });
 
       acc = acc.command(
         [command.name, ...command.aliases]
@@ -283,8 +284,7 @@ export class Program {
 
   private _applyPositionalArguments<U>(acc: Argv<U>, positionalArgs: CommandDef["positionalArgs"]) {
     for (const p of positionalArgs) {
-      const name = p.isRequired ? `<${p.name}>` : `[${p.name}]`;
-      acc = acc.positional(name, {
+      acc = acc.positional(p.name, {
         type: p.type,
         array: p.array,
         demandOption: p.isRequired,
