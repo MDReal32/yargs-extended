@@ -110,6 +110,8 @@ Useful methods:
 - `parseAsync(args?)`
 - `overrideExit(exitProcess = false)`
 
+Every program answers `--help, -h`, and `--version, -v` once `version()` is set. Those flags are reserved: an option that reuses `--help`, `--version`, `-h` or `-v` throws, like any other duplicate option.
+
 ### Commands
 
 ```ts

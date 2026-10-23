@@ -22,13 +22,13 @@ describe("type inference", () => {
   });
 
   it("should infer short aliases", () => {
-    const command = new Command("serve").option("--verbose, -v");
+    const command = new Command("serve").option("--quiet, -q");
 
     type Args = inferCommandType<typeof command>;
 
     expectTypeOf<Args>().toMatchObjectType<{
-      verbose: boolean;
-      v: boolean;
+      quiet: boolean;
+      q: boolean;
     }>();
   });
 

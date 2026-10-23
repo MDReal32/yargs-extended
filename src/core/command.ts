@@ -14,6 +14,7 @@ import type { ParsedSpec } from "../types/parsed-spec";
 import type { Promisable } from "../types/promiseable";
 import { parsePositional } from "../utils/parse-positional";
 import { parseSpec } from "../utils/parse-spec";
+import { BUILT_IN_OPTIONS } from "./built-in-options";
 
 /**
  * Represents a CLI command.
@@ -122,7 +123,7 @@ export class Command<TAccum extends object = object, TPrefetchResult = void>
     const format = (c: { longs: string[]; shorts: string[] }) =>
       [...c.longs.map((l) => `--${l}`), ...c.shorts.map((s) => `-${s}`)].join(", ");
 
-    const cc = conflicts(parsed, this.options);
+    const cc = conflicts(parsed, [...BUILT_IN_OPTIONS, ...this.options]);
     if (cc.longs.length || cc.shorts.length) {
       throw new Error(`Option(s) ${format(cc)} already registered. Command: "${this.name}".`);
     }

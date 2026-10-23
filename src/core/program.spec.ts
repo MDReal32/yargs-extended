@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Program } from "./program";
 
 describe("Program", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("should create a program instance", () => {
     const program = Program.createProgram();
     expect(program).toBeDefined();
@@ -53,6 +57,26 @@ describe("Program", () => {
     program.option("--foo, -f");
     // Should conflict on -f alias even if long name is different
     expect(() => program.option("--bar, -f")).toThrow();
+  });
+
+  it("should reserve -h and -v for help and version", () => {
+    const program = Program.createProgram();
+
+    expect(() => program.option("--verbose, -v")).toThrow("-v");
+    expect(() => program.command("serve").option("--host, -h")).toThrow("-h");
+    expect(() => program.option("--help")).toThrow("--help");
+  });
+
+  it("should print help for -h and the version for -v", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const program = () => Program.createProgram().overrideExit().name("my-cli").version("1.2.3");
+
+    await program().parseAsync(["-h"]);
+    await program().parseAsync(["-v"]);
+
+    expect(String(log.mock.calls[0]?.[0])).toContain("-h, --help");
+    expect(String(log.mock.calls[0]?.[0])).toContain("-v, --version");
+    expect(log.mock.calls[1]?.[0]).toBe("1.2.3");
   });
 
   it("should reject missing commands", async () => {

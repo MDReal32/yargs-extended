@@ -10,6 +10,7 @@ import type { CommandDef } from "../types/command-def";
 import type { ConfigOptions } from "../types/config-options";
 import type { ParsedSpec } from "../types/parsed-spec";
 import { parseSpec } from "../utils/parse-spec";
+import { BUILT_IN_OPTIONS } from "./built-in-options";
 import { Command } from "./command";
 
 /**
@@ -45,10 +46,10 @@ export class Program {
   static createProgram(args?: string[]) {
     const argv = yargs(args ?? hideBin(process.argv))
       .help()
+      .alias("help", "h")
       .strict()
       .recommendCommands()
       .demandCommand(1, "You must provide a command")
-      .help()
       .parserConfiguration({ "strip-aliased": false, "camel-case-expansion": true });
     return new Program(argv);
   }
@@ -72,11 +73,11 @@ export class Program {
   }
 
   /**
-   * Sets the CLI version.
+   * Sets the CLI version, printed by `--version` and `-v`.
    * @param v - The version string (e.g., "1.0.0").
    */
   version(v: string) {
-    this._argv = this._argv.version(v);
+    this._argv = this._argv.version(v).alias("version", "v");
     return this;
   }
 
@@ -126,7 +127,7 @@ export class Program {
     const format = (c: { longs: string[]; shorts: string[] }) =>
       [...c.longs.map((l) => `--${l}`), ...c.shorts.map((s) => `-${s}`)].join(", ");
 
-    const cc = conflicts(parsed, this.options);
+    const cc = conflicts(parsed, [...BUILT_IN_OPTIONS, ...this.options]);
     if (cc.longs.length || cc.shorts.length) {
       throw new Error(`Option(s) ${format(cc)} already registered for $0.`);
     }
